@@ -1,0 +1,487 @@
+<!DOCTYPE html> <htm
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saffron Table — Modern Indian Kitchen</title>
+<!--
+  PROJECT NOTE
+  Project type: Restaurant / food business website (single page).
+  Audience: local diners choosing where to eat. Purpose: showcase dishes,
+  tell the restaurant's story, and make hours, location and reservations easy to find.
+  Grid: featured-dish cards (auto-fit/minmax), three-column menu,
+        and the Visit section using grid-template-areas.
+  Flexbox: header navigation, dish card internals, footer layout.
+  Small screens: hero/story/visit grids collapse to one column,
+        grid-template-areas stack, stats become one column, nav wraps and centres.
+  Challenge: menu columns squashed on tablets; fixed with repeat(auto-fit, minmax(260px,1fr)).
+-->
+<style>
+  :root{
+    --ink:#1f1a17;
+    --muted:#6b625c;
+    --paper:#fdf9f3;
+    --card:#ffffff;
+    --line:#e8dfd3;
+    --accent:#c2410c;
+    --accent-dark:#9a3412;
+    --accent-soft:#ffedd5;
+    --radius:16px;
+    --shadow:0 10px 30px rgba(31,26,23,.08);
+    --max:1120px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+  }
+  h1,h2,h3{line-height:1.2;margin:0 0 .5em}
+  h1{font-size:clamp(2rem,5vw,3.4rem)}
+  h2{font-size:clamp(1.5rem,3.5vw,2.2rem)}
+  p{margin:0 0 1em}
+  a{color:inherit}
+  .wrap{width:min(100% - 2.5rem, var(--max)); margin-inline:auto}
+  .section{padding:clamp(3rem,6vw,5rem) 0; scroll-margin-top:80px}
+  .section.alt{background:var(--accent-soft)}
+  .eyebrow{
+    text-transform:uppercase; letter-spacing:.18em; font-size:.75rem;
+    font-weight:700; color:var(--accent); margin:0 0 .8rem;
+  }
+  /* ============ HEADER (Flexbox) ============ */
+  .site-header{
+    position:sticky; top:0; z-index:20;
+    background:rgba(253,249,243,.94);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .header-inner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    padding:.9rem 0;
+    flex-wrap:wrap;
+  }
+  .brand{
+    font-weight:800; letter-spacing:.4px; font-size:1.15rem;
+    text-decoration:none; color:var(--ink); white-space:nowrap;
+  }
+  .brand span{color:var(--accent)}
+  .nav{display:flex; align-items:center; gap:.35rem; flex-wrap:wrap}
+  .nav a{
+    text-decoration:none; font-weight:600; font-size:.95rem;
+    padding:.5rem .85rem; border-radius:999px;
+  }
+  .nav a:hover,.nav a:focus-visible{background:var(--accent-soft); outline:2px solid transparent}
+  .nav a:focus-visible{outline-color:var(--accent)}
+  .nav .btn{background:var(--accent); color:#fff; padding:.55rem 1.1rem}
+  .nav .btn:hover,.nav .btn:focus-visible{background:var(--accent-dark); color:#fff}
+  /* ============ HERO ============ */
+  .hero{
+    background:
+      radial-gradient(1200px 400px at 85% -10%, #fed7aa 0%, transparent 60%),
+      radial-gradient(900px 400px at 0% 110%, #fde68a 0%, transparent 55%),
+      var(--paper);
+    padding:clamp(3rem,8vw,6rem) 0;
+  }
+  .hero-inner{
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    gap:clamp(1.5rem,4vw,3.5rem);
+    align-items:center;
+  }
+  .hero .lead{font-size:1.1rem; color:var(--muted); max-width:46ch}
+  .hero-cta{display:flex; flex-wrap:wrap; gap:.75rem; margin-top:1.5rem}
+  .btn-solid,.btn-ghost{
+    text-decoration:none; font-weight:700; padding:.8rem 1.4rem;
+    border-radius:999px; display:inline-flex; align-items:center; gap:.45rem;
+    transition:background .2s ease, color .2s ease;
+  }
+  .btn-solid{background:var(--accent); color:#fff}
+  .btn-solid:hover{background:var(--accent-dark)}
+  .btn-ghost{border:2px solid var(--ink)}
+  .btn-ghost:hover{background:var(--ink); color:#fff}
+  .hero-visual{
+    position:relative; overflow:hidden;
+    aspect-ratio:4/3; border-radius:24px;
+    background:
+      radial-gradient(circle at 30% 28%, #fb923c, transparent 55%),
+      radial-gradient(circle at 72% 74%, #f59e0b, transparent 55%),
+      linear-gradient(135deg,#7c2d12,#c2410c);
+    display:grid; place-items:center; text-align:center;
+    color:#fff; padding:2rem; box-shadow:var(--shadow);
+  }
+  .hero-visual::after{
+    content:""; position:absolute; inset:14px;
+    border:1px dashed rgba(255,255,255,.45); border-radius:18px;
+  }
+  .hero-visual .plate{font-size:clamp(3rem,8vw,5rem); line-height:1}
+  .hero-visual small{
+    display:block; margin-top:.6rem; opacity:.9;
+    letter-spacing:.2em; text-transform:uppercase; font-size:.7rem;
+  }
+  /* ============ FEATURED DISHES (Grid + Flexbox cards) ============ */
+  .dish-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:1.25rem;
+    margin-top:2rem;
+  }
+  .dish{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); overflow:hidden;
+    display:flex; flex-direction:column;
+    box-shadow:var(--shadow);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .dish:hover{transform:translateY(-4px); box-shadow:0 18px 40px rgba(31,26,23,.14)}
+  .dish-img{aspect-ratio:16/10; display:grid; place-items:center; font-size:2.6rem; color:#fff}
+  .dish-img.a{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+  .dish-img.b{background:linear-gradient(135deg,#f59e0b,#b45309)}
+  .dish-img.c{background:linear-gradient(135deg,#10b981,#047857)}
+  .dish-img.d{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+  .dish-body{padding:1rem 1.1rem 1.2rem; display:flex; flex-direction:column; flex:1}
+  .dish-body h3{margin:0 0 .35rem; font-size:1.05rem}
+  .dish-body p{margin:0; color:var(--muted); font-size:.92rem}
+  .dish-price{
+    margin-top:auto; padding-top:.9rem;
+    display:flex; align-items:center; justify-content:space-between;
+    font-weight:800; color:var(--accent);
+  }
+  .tag{
+    background:var(--accent-soft); color:var(--accent);
+    font-size:.7rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.08em; padding:.25rem .55rem; border-radius:999px;
+  }
+  /* ============ FULL MENU (Grid) ============ */
+  .menu-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:1.75rem 2.5rem;
+    margin-top:2rem;
+  }
+  .menu-col h3{
+    border-bottom:2px solid var(--accent);
+    padding-bottom:.4rem; margin-bottom:.5rem;
+    font-size:1rem; letter-spacing:.06em; text-transform:uppercase;
+  }
+  .menu-item{
+    display:flex; justify-content:space-between; gap:1rem;
+    padding:.6rem 0; border-bottom:1px dotted var(--line);
+  }
+  .menu-item:last-child{border-bottom:none}
+  .menu-item small{display:block; color:var(--muted); font-size:.82rem}
+  .menu-item .price{font-weight:700; color:var(--accent); white-space:nowrap}
+  /* ============ STORY (Grid 2-col) ============ */
+  .story-grid{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:clamp(1.5rem,4vw,3rem);
+    align-items:center;
+  }
+  .story-visual{
+    aspect-ratio:1/1; border-radius:24px;
+    background:
+      repeating-linear-gradient(45deg,rgba(0,0,0,.04) 0 12px,transparent 12px 24px),
+      linear-gradient(135deg,#fde68a,#fb923c);
+    display:grid; place-items:center;
+    font-size:clamp(3rem,8vw,5rem);
+    box-shadow:var(--shadow);
+  }
+  .stats{
+    display:grid; grid-template-columns:repeat(3,1fr);
+    gap:1rem; margin-top:1.5rem;
+  }
+  .stat{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:1rem; text-align:center;
+  }
+  .stat b{display:block; font-size:1.4rem; color:var(--accent)}
+  .stat span{font-size:.78rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em}
+  /* ============ VISIT (Grid template areas) ============ */
+  .visit-grid{
+    display:grid;
+    grid-template-areas:
+      "hours address"
+      "hours contact";
+    grid-template-columns:1fr 1fr;
+    gap:1.25rem;
+    margin-top:2rem;
+  }
+  .visit-card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:1.3rem; box-shadow:var(--shadow);
+  }
+  .visit-card h3{
+    margin-top:0; font-size:.95rem;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--accent);
+  }
+  .visit-hours{grid-area:hours}
+  .visit-address{grid-area:address}
+  .visit-contact{grid-area:contact}
+  .hours-row{
+    display:flex; justify-content:space-between; gap:1rem;
+    padding:.35rem 0; border-bottom:1px dotted var(--line); font-size:.95rem;
+  }
+  .hours-row:last-child{border-bottom:none}
+  address{font-style:normal; color:var(--muted)}
+  .visit-contact a{color:var(--accent); font-weight:600; text-decoration:none}
+  .visit-contact a:hover{text-decoration:underline}
+  /* ============ FOOTER (Flexbox) ============ */
+  .site-footer{background:var(--ink); color:#e7ded4; padding:2.5rem 0 1.5rem}
+  .footer-inner{
+    display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem;
+    justify-content:space-between; align-items:flex-start;
+  }
+  .footer-brand{max-width:34ch}
+  .footer-brand b{color:#fff; font-size:1.1rem}
+  .footer-brand p{color:#b8ada2; margin:.4rem 0 0; font-size:.92rem}
+  .footer-links{display:flex; flex-wrap:wrap; gap:.4rem 1.2rem}
+  .footer-links a{color:#e7ded4; text-decoration:none; font-size:.92rem}
+  .footer-links a:hover{color:#fff; text-decoration:underline}
+  .footer-bottom{
+    margin-top:2rem; padding-top:1rem;
+    border-top:1px solid rgba(255,255,255,.12);
+    font-size:.82rem; color:#9c9188; text-align:center;
+  }
+  /* ============ RESPONSIVE ============ */
+  @media (max-width:820px){
+    .hero-inner{grid-template-columns:1fr}
+    .hero-visual{order:-1; aspect-ratio:16/9}
+    .story-grid{grid-template-columns:1fr}
+    .story-visual{order:-1; aspect-ratio:16/9}
+    .visit-grid{
+      grid-template-areas:"hours" "address" "contact";
+      grid-template-columns:1fr;
+    }
+  }
+  @media (max-width:560px){
+    .header-inner{justify-content:center}
+    .nav{justify-content:center}
+    .hero-inner{text-align:center}
+    .hero .lead{margin-inline:auto}
+    .hero-cta{justify-content:center}
+    .stats{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important; scroll-behavior:auto!important}
+  }
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top">Saffron <span>Table</span></a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#featured">Featured</a>
+      <a href="#menu">Menu</a>
+      <a href="#story">Our Story</a>
+      <a href="#visit">Visit</a>
+      <a class="btn" href="#visit">Reserve</a>
+    </nav>
+  </div>
+</header>
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div>
+        <p class="eyebrow">Riverside Quarter · Since 2014</p>
+        <h1>Slow-cooked Indian flavours, served warm.</h1>
+        <p class="lead">
+          A small family kitchen bringing the spice routes of Jaipur, Kerala and
+          Kashmir to one seasonal menu. Everything is ground, marinaded and
+          simmered in-house — no shortcuts, no packets.
+        </p>
+        <div class="hero-cta">
+          <a class="btn-solid" href="#menu">View the menu</a>
+          <a class="btn-ghost" href="#visit">Book a table</a>
+        </div>
+      </div>
+      <div class="hero-visual" role="img" aria-label="Illustration of a plated curry">
+        <div>
+          <div class="plate" aria-hidden="true">🍛</div>
+          <small>Tonight's special</small>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- FEATURED DISHES -->
+  <section id="featured" class="section">
+    <div class="wrap">
+      <p class="eyebrow">Chef's picks</p>
+      <h2>Featured dishes</h2>
+      <p>The four plates our regulars order again and again.</p>
+      <div class="dish-grid">
+        <article class="dish">
+          <div class="dish-img a" aria-hidden="true">🍛</div>
+          <div class="dish-body">
+            <h3>Butter Chicken</h3>
+            <p>Tandoori chicken folded into tomato, cream and fenugreek.</p>
+            <div class="dish-price"><span class="tag">Bestseller</span><span>$19</span></div>
+          </div>
+        </article>
+        <article class="dish">
+          <div class="dish-img b" aria-hidden="true">🧀</div>
+          <div class="dish-body">
+            <h3>Paneer Tikka</h3>
+            <p>Charred cottage cheese, mint chutney, pickled onion.</p>
+            <div class="dish-price"><span class="tag">Vegetarian</span><span>$11</span></div>
+          </div>
+        </article>
+        <article class="dish">
+          <div class="dish-img c" aria-hidden="true">🍲</div>
+          <div class="dish-body">
+            <h3>Lamb Rogan Josh</h3>
+            <p>Slow-braised shoulder, Kashmiri chilli, whole spice.</p>
+            <div class="dish-price"><span class="tag">Signature</span><span>$22</span></div>
+          </div>
+        </article>
+        <article class="dish">
+          <div class="dish-img d" aria-hidden="true">🍨</div>
+          <div class="dish-body">
+            <h3>Mango Kulfi</h3>
+            <p>Cardamom and pistachio frozen dessert, alphonso mango.</p>
+            <div class="dish-price"><span class="tag">Dessert</span><span>$8</span></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+  <!-- FULL MENU -->
+  <section id="menu" class="section alt">
+    <div class="wrap">
+      <p class="eyebrow">The full list</p>
+      <h2>Menu</h2>
+      <p>Prices include service. Vegan and gluten-free swaps are available — just ask.</p>
+      <div class="menu-grid">
+        <div class="menu-col">
+          <h3>Starters</h3>
+          <div class="menu-item">
+            <span>Samosa Chaat<small>Pastry, chickpeas, yoghurt, tamarind</small></span>
+            <span class="price">$9</span>
+          </div>
+          <div class="menu-item">
+            <span>Paneer Tikka<small>Charred cottage cheese, mint chutney</small></span>
+            <span class="price">$11</span>
+          </div>
+          <div class="menu-item">
+            <span>Onion Bhaji<small>Spiced fritters, lemon</small></span>
+            <span class="price">$8</span>
+          </div>
+        </div>
+        <div class="menu-col">
+          <h3>Mains</h3>
+          <div class="menu-item">
+            <span>Butter Chicken<small>Tomato, cream, fenugreek</small></span>
+            <span class="price">$19</span>
+          </div>
+          <div class="menu-item">
+            <span>Lamb Rogan Josh<small>Kashmiri chilli, slow-braised</small></span>
+            <span class="price">$22</span>
+          </div>
+          <div class="menu-item">
+            <span>Malai Kofta<small>Paneer dumplings, cashew gravy</small></span>
+            <span class="price">$18</span>
+          </div>
+          <div class="menu-item">
+            <span>Dal Makhani<small>Black lentils, 12-hour simmer</small></span>
+            <span class="price">$16</span>
+          </div>
+        </div>
+        <div class="menu-col">
+          <h3>Desserts</h3>
+          <div class="menu-item">
+            <span>Domoda<small>Meat, fish</small></span>
+            <span class="price">$8</span>
+          </div>
+          <div class="menu-item">
+            <span>Benachin<small>meat, fish</small></span>
+            <span class="price">$7</span>
+          </div>
+          <div class="menu-item">
+            <span>Churai Gerteh<small>Rice pudding, burnt sugar</small></span>
+            <span class="price">$9</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- STORY -->
+  <section id="story" class="section">
+    <div class="wrap story-grid">
+      <div>
+        <p class="eyebrow">Our story</p>
+        <h2>From the kitchen to your table</h2>
+        <p>
+          Saffron Table began as a Sunday lunch tradition — four dishes, one
+          long table, whoever turned up. Ten years later the table is bigger,
+          but the recipes are the same ones written on the back of a notebook
+          in 1994.
+        </p>
+        <p>
+          We source spices in small batches and roast them the morning they are
+          used. Nothing is frozen, and the dal really does take twelve hours.
+        </p>
+        <div class="stats">
+          <div class="stat"><b>2014</b><span>Opened</span></div>
+          <div class="stat"><b>40+</b><span>Dishes</span></div>
+          <div class="stat"><b>4.8★</b><span>Rated</span></div>
+        </div>
+      </div>
+      <div class="story-visual" aria-hidden="true">🌶️</div>
+    </div>
+  </section>
+  <!-- VISIT -->
+  <section id="visit" class="section alt">
+    <div class="wrap">
+      <p class="eyebrow">Find us</p>
+      <h2>Visit &amp; reserve</h2>
+      <p>Walk-ins welcome, but Friday and Saturday fill up fast.</p>
+      <div class="visit-grid">
+        <div class="visit-card visit-hours">
+          <h3>Opening hours</h3>
+          <div class="hours-row"><span>Mon – Thu</span><span>5:00pm – 10:00pm</span></div>
+          <div class="hours-row"><span>Fri – Sat</span><span>12:00pm – 11:00pm</span></div>
+          <div class="hours-row"><span>Sunday</span><span>12:00pm – 9:00pm</span></div>
+        </div>
+        <div class="visit-card visit-address">
+          <h3>Address</h3>
+          <address>
+            Sukuta<br>
+            Sanchaba<br>
+            Open seven days a week
+          </address>
+        </div>
+        <div class="visit-card visit-contact">
+          <h3>Contact</h3>
+          <p><a href="tel:+15550142">+220 7237058</a></p>
+          <p><a href="mailto:hello@saffrontable.example">dawdamanneh@gmail.com</a></p>
+          <p style="margin:0"><a href="#top">Reserve a table →</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <b>Saffron Table</b>
+      <p>Modern Gambian kitchen in the Riverside Quarter. Cooked slow, served warm.</p>
+    </div>
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="#featured">Featured</a>
+      <a href="#menu">Menu</a>
+      <a href="#story">Our Story</a>
+      <a href="#visit">Visit</a>
+    </nav>
+  </div>
+  <div class="wrap footer-bottom">© 2025 Saffron Table. All prices in local currency.</div>
+</footer>
+</body>
+</html>
